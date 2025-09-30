@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Details</title>
+    <style>
+        body { font-family: sans-serif; background-color: #141414; color: white; margin: 0; padding: 40px; }
+        .movie-details-container { display: flex; max-width: 1000px; margin: auto; background-color: #222; border-radius: 10px; padding: 20px; }
+        .poster img { max-width: 300px; border-radius: 8px; }
+        .details { margin-left: 20px; }
+        .details h1 { margin-top: 0; }
+        .genres span { background-color: #444; padding: 5px 10px; border-radius: 15px; margin-right: 5px; font-size: 14px; }
+        .back-link { display: inline-block; margin-bottom: 20px; color: #00bfff; text-decoration: none; }
+        /* --- ADD THIS NEW STYLE FOR PROVIDERS --- */
+        .providers img { width: 50px; height: 50px; border-radius: 8px; margin-right: 10px; }
+    </style>
+</head>
+<body>
+    <a href="/" class="back-link">&larr; Back to Search</a>
+    <div id="movie-details-container" class="movie-details-container">
+        </div>
+
+    <script>
+    window.addEventListener('DOMContentLoaded', () => {
+        const params = new URLSearchParams(window.location.search);
+        const movieId = params.get('id');
+
+        if (movieId) {
+            // Use Promise.all to wait for both API calls to finish
+            Promise.all([
+                fetch(`/api/movies/${movieId}`).then(res => res.json()),
+                fetch(`/api/movies/${movieId}/providers`).then(res => res.json())
+            ])
+            .then(([movie, providersData]) => {
+                // Now that we have both movie and providers data, we can build the page
+                displayMovieDetails(movie, providersData);
+            })
+            .catch(error => {
+                console.error('Error fetching movie data:', error);
+                document.getElementById('movie-details-container').innerHTML = '<h2>Failed to load movie details.</h2>';
+            });
+        }
+    });
+
+    function displayMovieDetails(movie, providersData) {
+    const container = document.getElementById('movie-details-container');
+    const posterUrl = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
+    const genresHtml = movie.genres.map(genre => `<span>${genre.name}</span>`).join('');
+
+    // --- Find Streaming Providers ---
+    let providersHtml = "<p>Streaming information not available.</p>";
+    // The API provides different results for each country. Let's use "US" as an example.
+    const usProviders = providersData.results.US;
+
+    // --- MODIFIED SECTION ---
+    if (usProviders && usProviders.flatrate) {
+        // The API also gives a master link to the movie on the provider's site
+        const providerPageLink = usProviders.link;
+
+        providersHtml = usProviders.flatrate.map(provider => `
+            <a href="${providerPageLink}" target="_blank">
+                <img src="https://image.tmdb.org/t/p/w500${provider.logo_path}" alt="${provider.provider_name}" title="${provider.provider_name}">
+            </a>
+        `).join('');
+    }
+    
+    // --- Build the final HTML ---
+    container.innerHTML = `
+        <div class="poster">
+            <img src="${posterUrl}" alt="${movie.title}">
+        </div>
+        <div class="details">
+            <h1>${movie.title} (${movie.release_date.substring(0, 4)})</h1>
+            <p class="genres">${genresHtml}</p>
+            <h3>Overview</h3>
+            <p>${movie.overview}</p>
+            <p><strong>Rating:</strong> ${movie.vote_average.toFixed(1)} / 10</p>
+            <h3>Available On:</h3>
+            <div class="providers">${providersHtml}</div>
+        </div>
+    `;
+}
+</script>
+</body>
+</html>
