@@ -1,11 +1,11 @@
-# Stage 1: Build the application using Maven
-FROM maven:3.8.5-openjdk-17 AS build
+# Stage 1: Build the application using Maven with Java 21
+FROM maven:3.9.6-eclipse-temurin-21-jammy AS build
 WORKDIR /app
 COPY . .
 RUN mvn clean package -DskipTests
 
-# Stage 2: Create the final, lightweight image
-FROM openjdk:17-jdk-slim
+# Stage 2: Create the final, lightweight image using a Java 21 JRE
+FROM openjdk:21-jre-slim
 WORKDIR /app
 COPY --from=build /app/target/cinesphere-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
