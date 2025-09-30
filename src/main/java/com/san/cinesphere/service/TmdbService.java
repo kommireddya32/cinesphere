@@ -41,4 +41,8 @@ public class TmdbService {
         String url = "https://api.themoviedb.org/3/discover/movie?api_key=" + apiKey + "&with_genres=" + genreId + "&page=" + page;
         return restTemplate.getForObject(url, String.class);
     }
+    public String getMovieCredits(int movieId) {
+        String url = "https://api.themoviedb.org/3/movie/" + movieId + "/credits?api_key=" + apiKey;
+        return restTemplate.getForObject(url, String.class);
+    }
 }

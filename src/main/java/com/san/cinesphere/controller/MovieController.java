@@ -39,4 +39,8 @@ public class MovieController {
     public String discoverMoviesByGenre(@RequestParam int genreId, @RequestParam(defaultValue = "1") int page) {
         return tmdbService.discoverMoviesByGenre(genreId, page);
     }
+    @GetMapping("/{movieId}/credits")
+    public String getMovieCredits(@PathVariable int movieId) {
+        return tmdbService.getMovieCredits(movieId);
+    }
 }
